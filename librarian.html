@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumen Library</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='2' width='44' height='44' rx='10' fill='%2335251E'/%3E%3Cpath d='M12 12h9c2 0 3 1 3 3v20c0-2-1-3-3-3h-9V12z' fill='%23DCC8AD'/%3E%3Cpath d='M36 12h-9c-2 0-3 1-3 3v20c0-2 1-3 3-3h9V12z' fill='%23B88A5A'/%3E%3Cpath d='M24 15v20' stroke='%2335251E' stroke-width='1.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script defer src="js/app.js"></script>
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="dash-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+
+  <section class="dash-content">
+    <header class="dash-header">
+      <p class="eyebrow">Librarian area</p>
+      <h1>Dashboard</h1>
+      <p>Manage books, reservations and returns.</p>
+    </header>
+
+    <div class="stat-grid" id="stats"></div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="tabBooks">Books</button>
+      <button class="tab" data-tab="tabPending">Pending pickups <span id="pendingCountBadge" class="badge wait" style="margin-left:.4rem">0</span></button>
+      <button class="tab" data-tab="tabLoans">Active loans <span id="activeCountBadge" class="badge warn" style="margin-left:.4rem">0</span></button>
+      <button class="tab" data-tab="tabHistory">History</button>
+    </div>
+
+    <section class="panel on" id="tabBooks">
+      <div class="section-heading">
+        <div><p class="eyebrow">Catalogue</p><h2>All books</h2></div>
+        <button class="btn caramel sm" id="addBtn" type="button">+ Add book</button>
+      </div>
+      <div class="search-row" style="margin:14px 0">
+        <div class="search-box">
+          <span class="search-symbol">⌕</span>
+          <input id="bookSearch" placeholder="Search by title, author or ISBN…">
+        </div>
+        <select class="category-select" id="bookCat"><option value="all">All categories</option></select>
+      </div>
+      <div class="book-grid" id="libBookGrid"></div>
+      <p class="empty-state" id="libBookEmpty" hidden>No books match your search.</p>
+    </section>
+
+    <section class="panel" id="tabPending">
+      <div class="section-heading">
+        <div><p class="eyebrow">Reservations</p><h2>Pending pickups</h2></div>
+        <button class="btn caramel sm" id="newLoanBtn" type="button">+ New loan at desk</button>
+      </div>
+      <div class="search-row" style="margin:14px 0">
+        <div class="search-box">
+          <span class="search-symbol">⌕</span>
+          <input id="pendingSearch" placeholder="Search by book, reader name, phone or email…">
+        </div>
+      </div>
+      <div class="table-wrap"><table id="pendingTable"></table></div>
+    </section>
+
+    <section class="panel" id="tabLoans">
+      <div class="section-heading">
+        <div><p class="eyebrow">Returns</p><h2>Active loans &amp; returns</h2></div>
+        <span class="badge warn" id="overdueCount" style="padding:.4rem .8rem">0 overdue</span>
+      </div>
+      <div class="search-row" style="margin:14px 0">
+        <div class="search-box">
+          <span class="search-symbol">⌕</span>
+          <input id="loanSearch" placeholder="Search by book, reader name, phone or email…">
+        </div>
+      </div>
+      <div class="table-wrap"><table id="loanTable"></table></div>
+    </section>
+
+    <section class="panel" id="tabHistory">
+      <div class="section-heading">
+        <div><p class="eyebrow">Archive</p><h2>Loan history</h2></div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <select class="category-select" id="historyStatus" style="width:auto;max-width:none">
+            <option value="all">All statuses</option>
+            <option value="returned">Returned</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="expired">Expired</option>
+          </select>
+          <input type="date" id="historyDate" class="category-select" style="width:auto;max-width:none">
+          <button class="btn ghost sm" id="historyClear" type="button">Clear</button>
+        </div>
+      </div>
+      <div class="search-row" style="margin:14px 0">
+        <div class="search-box">
+          <span class="search-symbol">⌕</span>
+          <input id="historySearch" placeholder="Search by book, reader name, phone or email…">
+        </div>
+      </div>
+      <div class="table-wrap"><table id="historyTable"></table></div>
+    </section>
+  </section>
+</div>
+
+<dialog id="dlg">
+  <h2 id="dlgTitle">Add a book</h2>
+  <form id="bookForm">
+    <input type="hidden" id="bookId" value="">
+    <label for="t">Title</label><input id="t" required>
+    <label for="a">Author</label><input id="a" required>
+    <label for="c">Category</label><select id="c"></select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+      <div><label for="yr">Year</label><input id="yr" type="number" min="0" value="2026" required></div>
+      <div><label for="n">Copies</label><input id="n" type="number" min="0" value="1" required></div>
+    </div>
+    <label for="lang">Language</label>
+    <select id="lang"><option>English</option><option>French</option></select>
+    <label for="isbn">ISBN (optional)</label>
+    <input id="isbn" placeholder="9780441172719">
+    <label for="cover">Cover image URL (optional)</label>
+    <input id="cover" placeholder="https://…">
+    <div class="row">
+      <button type="button" class="btn ghost" id="cancel">Cancel</button>
+      <button class="btn caramel" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="deskDlg" class="desk-dialog">
+  <h2>New loan at desk</h2>
+  <form id="deskForm">
+    <label for="deskBookSearch">Book</label>
+    <div class="desk-search-wrap">
+      <span class="desk-search-icon">⌕</span>
+      <input id="deskBookSearch" placeholder="Type a title or author to search…" autocomplete="off">
+    </div>
+    <div id="deskBookResults" class="desk-results"></div>
+    <input type="hidden" id="deskBookId" value="">
+    <div id="deskBookSelected" class="desk-selected" hidden></div>
+
+    <label for="deskName">Reader name</label>
+    <input id="deskName" placeholder="Full name" required>
+    <label for="deskPhone">Phone</label>
+    <input id="deskPhone" placeholder="0555123456" required>
+    <label for="deskEmail">Email (optional)</label>
+    <input id="deskEmail" type="email" placeholder="reader@example.com">
+    <div class="row">
+      <button type="button" class="btn ghost" id="deskCancel">Cancel</button>
+      <button class="btn caramel" type="submit" id="deskSubmit" disabled>Create loan</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async function(){
+  await window.appReady;
+  if (!requireLibrarian()) return;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var all = [];
+  var pendingFilter = "";
+  var loanFilter = "";
+  var historyFilter = "";
+  var historyStatus = "all";
+  var historyDate = "";
+  var bookFilter = { q:"", cat:"all" };
+
+  // ✅ FIX: refresh recharge les données depuis l'API avant de recalculer
+  async function refresh(){
+    await refreshData();
+    all = getAllBooks();
+    stats();
+    renderPending();
+    renderLoans();
+    renderLibBooks();
+    renderHistory();
+  }
+
+  /* ---------- Stats ---------- */
+  function stats(){
+    var copies  = all.reduce(function(s,b){ return s + Number(b.total||0); }, 0);
+    var avail   = all.reduce(function(s,b){ return s + Number(b.avail||0); }, 0);
+    var loans   = loadLoans();
+    var pending = loans.filter(function(l){ return l.status === "pending"; });
+    var onLoan  = loans.filter(function(l){ return l.status === "on-loan"; });
+    var overdue = getOverdueLoans();
+
+    $("stats").innerHTML = [
+      [all.length, "Titles"],
+      [copies, "Physical copies"],
+      [avail, "Available"],
+      [onLoan.length, "Active loans"],
+      [pending.length, "Pending pickups"],
+      [overdue.length, "Overdue"]
+    ].map(function(p){
+      return '<div class="stat"><b>' + p[0] + '</b><span>' + p[1] + '</span></div>';
+    }).join("");
+
+    // ✅ badges synchronisés avec les cards
+    var pb = $("pendingCountBadge"); if (pb) pb.textContent = pending.length;
+    var ab = $("activeCountBadge"); if (ab) ab.textContent = onLoan.length;
+    var oc = $("overdueCount"); if (oc) oc.textContent = overdue.length + " overdue";
+  }
+
+  /* ---------- Tabs ---------- */
+  document.querySelectorAll(".tab").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("on", b === btn); });
+      document.querySelectorAll(".panel").forEach(function(p){ p.classList.toggle("on", p.id === btn.dataset.tab); });
+    });
+  });
+
+  /* ---------- BOOKS ---------- */
+  function renderLibBooks(){
+    var grid = $("libBookGrid");
+    if (!grid) return;
+    var q = bookFilter.q.trim().toLowerCase();
+    var list = all.filter(function(b){
+      var okQ = !q || [b.title, b.author, b.isbn, b.cat].some(function(v){
+        return (v || "").toLowerCase().indexOf(q) !== -1;
+      });
+      var okCat = bookFilter.cat === "all" || b.cat === bookFilter.cat;
+      return okQ && okCat;
+    });
+
+    var emptyEl = $("libBookEmpty");
+    if (emptyEl) emptyEl.hidden = list.length > 0;
+
+    grid.innerHTML = list.map(function(b){
+      var s = statusLabel(b);
+      return '<article class="book-card">' +
+        '<div class="cover-wrap"><div class="book-cover-photo">' +
+          (b.coverUrl
+            ? '<img src="' + escapeHtml(b.coverUrl) + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+              '<div class="cover-fallback v' + (b.id % 6) + '" style="display:none"><strong>' + escapeHtml(b.title) + '</strong><small>' + escapeHtml(b.author) + '</small></div>'
+            : '<div class="cover-fallback v' + (b.id % 6) + '"><strong>' + escapeHtml(b.title) + '</strong><small>' + escapeHtml(b.author) + '</small></div>') +
+        '</div></div>' +
+        '<div class="book-info">' +
+          '<span class="book-category">' + escapeHtml(b.cat) + '</span>' +
+          '<h3>' + escapeHtml(b.title) + '</h3>' +
+          '<p class="book-author">' + escapeHtml(b.author) + ' · ' + b.year + '</p>' +
+          '<div class="book-actions">' +
+            '<span class="availability ' + s.cls + '">' + s.text + ' · ' + b.avail + '/' + b.total + '</span>' +
+          '</div>' +
+          '<div class="card-actions" style="display:flex;flex-direction:column;gap:.35rem">' +
+            '<button class="toggle-borrow" type="button" data-loan-book="' + b.id + '"' + (b.avail <= 0 ? ' disabled' : '') + '>' +
+              (b.avail <= 0 ? '✕ Unavailable' : '📖 New loan at desk') +
+            '</button>' +
+            '<div style="display:flex;gap:.35rem">' +
+              '<button class="details-button" style="flex:1" data-edit="' + b.id + '">Edit</button>' +
+              '<button class="remove-btn" style="flex:1" data-del="' + b.id + '">Delete</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</article>';
+    }).join("");
+  }
+  window._libBooksRender = renderLibBooks;
+
+  $("bookSearch").addEventListener("input", function(e){
+    bookFilter.q = e.target.value;
+    renderLibBooks();
+  });
+  $("bookCat").addEventListener("change", function(e){
+    bookFilter.cat = e.target.value;
+    renderLibBooks();
+  });
+
+  $("libBookGrid").addEventListener("click", async function(e){
+    var loan = e.target.closest("[data-loan-book]");
+    if (loan){ openDesk(Number(loan.dataset.loanBook)); return; }
+    var edit = e.target.closest("[data-edit]");
+    if (edit){ openEdit(Number(edit.dataset.edit)); return; }
+    var del = e.target.closest("[data-del]");
+    if (del){
+      var b = all.find(function(x){ return x.id === Number(del.dataset.del); });
+      if (!b) return;
+      const ok = await customConfirm("Delete book", 'Delete "' + b.title + '"?\nThis action cannot be undone.');
+      if (!ok) return;
+      var r = await deleteBook(b.id);
+      if (!r.ok){ showToast(r.msg); return; }
+      await refresh();
+      showToast("Book deleted.");
+    }
+  });
+
+  /* ---------- PENDING ---------- */
+  function renderPending(){
+    var loans = loadLoans().filter(function(l){ return l.status === "pending"; });
+    var q = pendingFilter.trim().toLowerCase();
+
+    if (q){
+      loans = loans.filter(function(l){
+        var title = (l.title || "").toLowerCase();
+        var uname = (l.userName || "").toLowerCase();
+        var uemail = (l.userEmail || "").toLowerCase();
+        var uphone = (l.userPhone || "").toLowerCase();
+        return title.indexOf(q) !== -1 || uname.indexOf(q) !== -1 || uemail.indexOf(q) !== -1 || uphone.indexOf(q) !== -1;
+      });
+    }
+
+    var table = $("pendingTable");
+    if (loans.length === 0){
+      table.innerHTML = '<tr><td style="padding:1.2rem;text-align:center;color:var(--muted)">No pending pickups.</td></tr>';
+      return;
+    }
+
+    table.innerHTML =
+      '<tr><th>Book</th><th>Reader</th><th>Phone / Email</th><th>Reserved</th><th>Pick up before</th><th>Action</th></tr>' +
+      loans.map(function(l){
+        return '<tr>' +
+          '<td><strong>' + l.title + '</strong><br><small class="muted">' + l.author + '</small></td>' +
+          '<td>' + (l.userName || "—") + '</td>' +
+          '<td><small>' + (l.userPhone || "—") + (l.userEmail ? '<br>' + l.userEmail : '') + '</small></td>' +
+          '<td>' + (l.requestedOn || "—") + '</td>' +
+          '<td>' + (l.pickupDeadline || "—") + '</td>' +
+          '<td>' +
+            '<button class="sm" data-confirm-pickup="' + l.id + '">Confirm pickup</button> ' +
+            '<button class="sm ghost" data-cancel-pending="' + l.id + '">Cancel</button>' +
+          '</td>' +
+        '</tr>';
+      }).join("");
+  }
+
+  $("pendingTable").addEventListener("click", async function(e){
+    var pickup = e.target.closest("[data-confirm-pickup]");
+    if (pickup){
+      var loanId = Number(pickup.dataset.confirmPickup);
+      const ok = await customConfirm("Confirm pickup", "Confirm that this book was handed to the reader?");
+      if (!ok) return;
+      if (await confirmPickup(loanId)){
+        await refresh();
+        showToast("Picked up.");
+      }
+      return;
+    }
+    var cancel = e.target.closest("[data-cancel-pending]");
+    if (cancel){
+      var loanId2 = Number(cancel.dataset.cancelPending);
+      const ok2 = await customConfirm("Cancel reservation", "Cancel this reservation?\nThe book will return to the shelf.");
+      if (!ok2) return;
+      if (await cancelPending(loanId2)){
+        await refresh();
+        showToast("Reservation cancelled.");
+      }
+    }
+  });
+
+  $("pendingSearch").addEventListener("input", function(e){
+    pendingFilter = e.target.value;
+    renderPending();
+  });
+
+  /* ---------- LOANS ---------- */
+  function renderLoans(){
+    var loans = loadLoans().filter(function(l){ return l.status === "on-loan"; });
+    var q = loanFilter.trim().toLowerCase();
+
+    if (q){
+      loans = loans.filter(function(l){
+        var title = (l.title || "").toLowerCase();
+        var uname = (l.userName || "").toLowerCase();
+        var uemail = (l.userEmail || "").toLowerCase();
+        var uphone = (l.userPhone || "").toLowerCase();
+        return title.indexOf(q) !== -1 || uname.indexOf(q) !== -1 || uemail.indexOf(q) !== -1 || uphone.indexOf(q) !== -1;
+      });
+    }
+
+    var table = $("loanTable");
+    if (loans.length === 0){
+      table.innerHTML = '<tr><td style="padding:1.2rem;text-align:center;color:var(--muted)">No active loans.</td></tr>';
+      return;
+    }
+
+    table.innerHTML =
+      '<tr><th>Book</th><th>Reader</th><th>Phone / Email</th><th>Picked up</th><th>Due</th><th>Status</th><th>Action</th></tr>' +
+      loans.map(function(l){
+        var st = getLoanStatus(l);
+        return '<tr>' +
+          '<td><strong>' + l.title + '</strong><br><small class="muted">' + l.author + '</small></td>' +
+          '<td>' + (l.userName || "—") + '</td>' +
+          '<td><small>' + (l.userPhone || "—") + (l.userEmail ? '<br>' + l.userEmail : '') + '</small></td>' +
+          '<td>' + (l.pickedUpOn || "—") + '</td>' +
+          '<td>' + (l.dueOn || "—") + '</td>' +
+          '<td><span class="badge ' + (st.cls === "danger" ? "warn" : st.cls) + '">' + st.label + '</span></td>' +
+          '<td><button class="sm" data-return-loan="' + l.id + '">Mark as returned</button></td>' +
+        '</tr>';
+      }).join("");
+  }
+
+  $("loanTable").addEventListener("click", async function(e){
+    var btn = e.target.closest("[data-return-loan]");
+    if (!btn) return;
+    var loanId = Number(btn.dataset.returnLoan);
+    const ok = await customConfirm("Mark as returned", "Mark this book as returned?");
+    if (!ok) return;
+    if (await markReturned(loanId)){
+      await refresh();
+      showToast("Returned.");
+    }
+  });
+
+  $("loanSearch").addEventListener("input", function(e){
+    loanFilter = e.target.value;
+    renderLoans();
+  });
+
+  /* ---------- HISTORY ---------- */
+  function renderHistory(){
+    var loans = loadLoans().filter(function(l){
+      return l.status === "returned" || l.status === "cancelled" || l.status === "expired";
+    });
+    var q = historyFilter.trim().toLowerCase();
+
+    if (historyStatus !== "all"){
+      loans = loans.filter(function(l){ return l.status === historyStatus; });
+    }
+
+    if (historyDate){
+      loans = loans.filter(function(l){
+        var d = l.returnedOn || l.cancelledOn || l.expiredOn || l.requestedOn || "";
+        return d === historyDate;
+      });
+    }
+
+    if (q){
+      loans = loans.filter(function(l){
+        var title = (l.title || "").toLowerCase();
+        var uname = (l.userName || "").toLowerCase();
+        var uemail = (l.userEmail || "").toLowerCase();
+        var uphone = (l.userPhone || "").toLowerCase();
+        return title.indexOf(q) !== -1 || uname.indexOf(q) !== -1 || uemail.indexOf(q) !== -1 || uphone.indexOf(q) !== -1;
+      });
+    }
+
+    loans.sort(function(a, b){
+      var da = new Date(a.returnedOn || a.cancelledOn || a.expiredOn || a.requestedOn || 0);
+      var db = new Date(b.returnedOn || b.cancelledOn || b.expiredOn || b.requestedOn || 0);
+      return db - da;
+    });
+
+    var table = $("historyTable");
+    if (loans.length === 0){
+      table.innerHTML = '<tr><td style="padding:1.2rem;text-align:center;color:var(--muted)">No history found.</td></tr>';
+      return;
+    }
+
+    table.innerHTML =
+      '<tr><th>Book</th><th>Reader</th><th>Phone / Email</th><th>Picked up</th><th>Due</th><th>Closed on</th><th>Status</th></tr>' +
+      loans.map(function(l){
+        var st = getLoanStatus(l);
+        var closedOn = l.returnedOn || l.cancelledOn || l.expiredOn || "—";
+        return '<tr>' +
+          '<td><strong>' + l.title + '</strong><br><small class="muted">' + l.author + '</small></td>' +
+          '<td>' + (l.userName || "—") + '</td>' +
+          '<td><small>' + (l.userPhone || "—") + (l.userEmail ? '<br>' + l.userEmail : '') + '</small></td>' +
+          '<td>' + (l.pickedUpOn || "—") + '</td>' +
+          '<td>' + (l.dueOn || "—") + '</td>' +
+          '<td>' + closedOn + '</td>' +
+          '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+        '</tr>';
+      }).join("");
+  }
+
+  $("historySearch").addEventListener("input", function(e){
+    historyFilter = e.target.value;
+    renderHistory();
+  });
+  $("historyStatus").addEventListener("change", function(e){
+    historyStatus = e.target.value;
+    renderHistory();
+  });
+  $("historyDate").addEventListener("change", function(e){
+    historyDate = e.target.value;
+    renderHistory();
+  });
+  $("historyClear").addEventListener("click", function(){
+    historyStatus = "all";
+    historyDate = "";
+    historyFilter = "";
+    $("historyStatus").value = "all";
+    $("historyDate").value = "";
+    $("historySearch").value = "";
+    renderHistory();
+  });
+
+  /* ---------- NEW LOAN AT DESK ---------- */
+  function openDesk(bookId){
+    $("deskName").value = "";
+    $("deskPhone").value = "";
+    $("deskEmail").value = "";
+    $("deskBookSearch").value = "";
+    $("deskBookId").value = "";
+    $("deskSubmit").disabled = true;
+    $("deskBookSelected").hidden = true;
+    $("deskBookResults").innerHTML = "";
+    $("deskBookSearch").style.display = "";
+
+    if (bookId){
+      var b = all.find(function(x){ return x.id === bookId; });
+      if (b) selectDeskBook(b);
+    } else {
+      $("deskBookSearch").focus();
+    }
+    $("deskDlg").showModal();
+  }
+
+  function renderDeskResults(q){
+    var box = $("deskBookResults");
+    var query = (q || "").trim().toLowerCase();
+    if (!query){ box.innerHTML = ""; return; }
+
+    var list = all.filter(function(b){
+      if (b.avail <= 0) return false;
+      return [b.title, b.author, b.isbn].some(function(v){
+        return (v || "").toLowerCase().indexOf(query) !== -1;
+      });
+    }).slice(0, 8);
+
+    if (list.length === 0){
+      box.innerHTML = '<p class="desk-empty">No books found.</p>';
+      return;
+    }
+
+    box.innerHTML = list.map(function(b){
+      var cover = b.coverUrl
+        ? '<img src="' + escapeHtml(b.coverUrl) + '" alt="" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#7a5640\'">'
+        : '<div class="desk-thumb-fb"><strong>' + escapeHtml(b.title.charAt(0)) + '</strong></div>';
+      return '<button type="button" class="desk-result" data-pick="' + b.id + '">' +
+        '<div class="desk-thumb">' + cover + '</div>' +
+        '<div class="desk-info">' +
+          '<strong>' + escapeHtml(b.title) + '</strong>' +
+          '<small>' + escapeHtml(b.author) + ' · ' + b.year + '</small>' +
+          '<span class="desk-avail">Available: ' + b.avail + '</span>' +
+        '</div>' +
+      '</button>';
+    }).join("");
+  }
+
+  function selectDeskBook(b){
+    $("deskBookId").value = b.id;
+    $("deskBookSelected").hidden = false;
+    $("deskBookSelected").innerHTML =
+      '<div class="desk-selected-inner">' +
+        '<strong>' + escapeHtml(b.title) + '</strong>' +
+        '<small>' + escapeHtml(b.author) + ' · Available: ' + b.avail + '</small>' +
+        '<button type="button" class="desk-change" id="deskChangeBtn">Change</button>' +
+      '</div>';
+    $("deskBookResults").innerHTML = "";
+    $("deskBookSearch").value = b.title;
+    $("deskBookSearch").style.display = "none";
+    $("deskSubmit").disabled = false;
+
+    var changeBtn = document.getElementById("deskChangeBtn");
+    if (changeBtn){
+      changeBtn.addEventListener("click", function(){
+        $("deskBookSelected").hidden = true;
+        $("deskBookId").value = "";
+        $("deskBookSearch").value = "";
+        $("deskBookSearch").style.display = "";
+        $("deskBookSearch").focus();
+        $("deskSubmit").disabled = true;
+      });
+    }
+  }
+
+  $("deskBookSearch").addEventListener("input", function(e){
+    $("deskBookId").value = "";
+    $("deskBookSelected").hidden = true;
+    $("deskSubmit").disabled = true;
+    renderDeskResults(e.target.value);
+  });
+
+  $("deskBookResults").addEventListener("click", function(e){
+    var pick = e.target.closest("[data-pick]");
+    if (!pick) return;
+    var b = all.find(function(x){ return x.id === Number(pick.dataset.pick); });
+    if (b) selectDeskBook(b);
+  });
+
+  $("newLoanBtn").addEventListener("click", function(){ openDesk(null); });
+  $("deskCancel").addEventListener("click", function(){ $("deskDlg").close(); });
+
+  $("deskForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var bookId = Number($("deskBookId").value);
+    if (!bookId){ showToast("Please select a book."); return; }
+    var name = $("deskName").value.trim();
+    var phone = $("deskPhone").value.trim();
+    var email = $("deskEmail").value.trim();
+
+    var result = await newLoanAtDesk(bookId, name, phone, email, false);
+    if (!result.ok){ showToast(result.msg); return; }
+    $("deskDlg").close();
+    await refresh();
+    showToast("Loan created.");
+  });
+
+  /* ---------- BOOK EDIT / ADD ---------- */
+  $("c").innerHTML = getCategories().map(function(c){ return '<option>' + c + '</option>'; }).join("");
+  $("bookCat").innerHTML = '<option value="all">All categories</option>' +
+    getCategories().map(function(c){ return '<option>' + c + '</option>'; }).join("");
+
+  function openAdd(){
+    $("dlgTitle").textContent = "Add a book";
+    $("bookId").value = "";
+    $("t").value = ""; $("a").value = ""; $("yr").value = new Date().getFullYear();
+    $("n").value = 1; $("isbn").value = ""; $("cover").value = ""; $("lang").value = "English";
+    $("c").selectedIndex = 0;
+    $("dlg").showModal();
+  }
+  function openEdit(id){
+    var b = all.find(function(x){ return x.id === id; });
+    if (!b) return;
+    $("dlgTitle").textContent = "Edit book";
+    $("bookId").value = b.id;
+    $("t").value = b.title; $("a").value = b.author; $("c").value = b.cat;
+    $("yr").value = b.year; $("n").value = b.total; $("lang").value = b.lang;
+    $("isbn").value = b.isbn || ""; $("cover").value = b.coverUrl || "";
+    $("dlg").showModal();
+  }
+
+  $("addBtn").addEventListener("click", openAdd);
+  $("cancel").addEventListener("click", function(){ $("dlg").close(); });
+
+  $("bookForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var idAttr = $("bookId").value;
+    var isbn = $("isbn").value.trim();
+    var coverInput = $("cover").value.trim();
+    var coverUrl = coverInput || (isbn ? "https://covers.openlibrary.org/b/isbn/" + isbn + "-L.jpg" : "");
+    var total = Number($("n").value);
+    var data = {
+      title: $("t").value.trim(),
+      author: $("a").value.trim(),
+      cat: $("c").value,
+      year: Number($("yr").value),
+      isbn: isbn,
+      lang: $("lang").value,
+      total: total,
+      coverUrl: coverUrl,
+      desc: ""
+    };
+
+    var r = await saveBook(data, idAttr ? Number(idAttr) : null);
+    if (!r.ok){ showToast(r.msg); return; }
+    $("dlg").close();
+    await refresh();
+    showToast(idAttr ? "Book updated." : "Book added.");
+  });
+
+  await refresh();
+});
+</script>
+</body>
+</html>

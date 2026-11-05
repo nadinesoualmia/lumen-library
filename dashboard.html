@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumen Library</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='2' width='44' height='44' rx='10' fill='%2335251E'/%3E%3Cpath d='M12 12h9c2 0 3 1 3 3v20c0-2-1-3-3-3h-9V12z' fill='%23DCC8AD'/%3E%3Cpath d='M36 12h-9c-2 0-3 1-3 3v20c0-2 1-3 3-3h9V12z' fill='%23B88A5A'/%3E%3Cpath d='M24 15v20' stroke='%2335251E' stroke-width='1.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script defer src="js/app.js"></script>
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="dash-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+
+  <section class="dash-content">
+    <header class="dash-header">
+      <h1>Hello, <span id="uname">Reader</span> 👋🏻</h1>
+      <p>Here is an overview of your activity.</p>
+    </header>
+
+    <!-- ✅ Stats (cards) toujours visibles -->
+    <div class="stat-grid" id="ovStats"></div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="borrowed">My loans</button>
+      <button class="tab" data-tab="history">Borrowing history</button>
+      <button class="tab" data-tab="wish">Reading list</button>
+      <button class="tab" data-tab="notifs">Notifications</button>
+    </div>
+
+    <section class="panel on" id="borrowed">
+      <h2>My active loans</h2>
+      <p class="muted" style="margin-bottom:1rem">Your current loans and pending reservations.</p>
+      <div class="table-wrap">
+        <table id="activeTable"></table>
+      </div>
+      <div id="activeEmpty" class="empty" hidden style="margin-top:1rem">
+        <h3>No active loans</h3>
+        <p>When you reserve or borrow a book, it will appear here.</p>
+        <a class="btn caramel" href="index.html" style="margin-top:.8rem">Browse books</a>
+      </div>
+    </section>
+
+    <section class="panel" id="history">
+      <h2>Borrowing history</h2>
+      <p class="muted" style="margin-bottom:1rem">All your reservations, loans and returns.</p>
+      <div class="table-wrap">
+        <table id="historyTable"></table>
+      </div>
+      <div id="historyEmpty" class="empty" hidden style="margin-top:1rem">
+        <h3>No history yet</h3>
+        <p>Your history will appear here after your first reservation.</p>
+      </div>
+    </section>
+
+    <section class="panel" id="wish">
+      <h2>My reading list</h2>
+      <div class="book-grid" id="wishGrid" style="margin-top:1rem"></div>
+    </section>
+
+    <section class="panel" id="notifs">
+      <h2>Notifications</h2>
+      <div class="list" id="notifList"></div>
+    </section>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="bookDialog" class="book-dialog">
+  <button class="dialog-close" id="closeDialog" aria-label="Close">×</button>
+  <div id="dialogContent"></div>
+</dialog>
+
+<script>
+let _wishGridRender = null;
+
+function renderDashboard(){
+  const u = getUser();
+  if (!u) return;
+  document.getElementById("uname").textContent = u.name || u.email;
+
+  const all = getAllBooks();
+  const loans = loadLoans();
+  const myLoans = loans.filter(l => l.userEmail === u.email);
+  const active = myLoans.filter(l => l.status === "pending" || l.status === "on-loan");
+  const today = new Date();
+
+  const pendingCount = myLoans.filter(l => l.status === "pending").length;
+  const dueSoonCount = myLoans.filter(l => {
+    if (l.status !== "on-loan" || !l.dueOn) return false;
+    const due = new Date(l.dueOn);
+    const days = (due - today) / (1000*3600*24);
+    return days >= 0 && days <= 7;
+  }).length;
+
+  document.getElementById("ovStats").innerHTML = [
+    [active.length, "Active loans"],
+    [pendingCount, "Pending pickup"],
+    [dueSoonCount, "Due soon"],
+    [borrowed.length, "In my list"]
+  ].map(p => '<div class="stat"><b>' + p[0] + '</b><span>' + p[1] + '</span></div>').join("");
+
+  /* ---------- My active loans — TABLE ---------- */
+  const activeTable = document.getElementById("activeTable");
+  const activeEmpty = document.getElementById("activeEmpty");
+
+  if (active.length === 0){
+    activeEmpty.hidden = false;
+    activeTable.innerHTML = "";
+  } else {
+    activeEmpty.hidden = true;
+    activeTable.innerHTML =
+      '<tr>' +
+        '<th>Book</th>' +
+        '<th>Author</th>' +
+        '<th>Status</th>' +
+        '<th>Reserved</th>' +
+        '<th>Pick up before</th>' +
+        '<th>Picked up</th>' +
+        '<th>Due</th>' +
+        '<th>Action</th>' +
+      '</tr>' +
+      active.map(l => {
+        const b = all.find(x => x.id === l.bookId);
+        if (!b) return "";
+        const st = getLoanStatus(l);
+        const isPending = l.status === "pending";
+        return '<tr>' +
+          '<td><strong>' + b.title + '</strong></td>' +
+          '<td>' + b.author + '</td>' +
+          '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+          '<td>' + (l.requestedOn || "—") + '</td>' +
+          '<td>' + (isPending ? (l.pickupDeadline || "—") : "—") + '</td>' +
+          '<td>' + (l.pickedUpOn || "—") + '</td>' +
+          '<td>' + (l.dueOn || "—") + '</td>' +
+          '<td>' +
+            (isPending
+              ? '<button class="sm ghost" data-cancel-loan="' + l.bookId + '">Cancel reservation</button>'
+              : '<span class="muted" style="font-size:.75rem">Return at the library desk</span>') +
+          '</td>' +
+        '</tr>';
+      }).join("");
+  }
+
+  /* ---------- History — TABLE ---------- */
+  const histTable = document.getElementById("historyTable");
+  const histEmpty = document.getElementById("historyEmpty");
+  if (myLoans.length === 0){
+    histEmpty.hidden = false;
+    histTable.innerHTML = "";
+  } else {
+    histEmpty.hidden = true;
+    histTable.innerHTML =
+      '<tr><th>Book</th><th>Author</th><th>Requested</th><th>Picked up</th><th>Due</th><th>Returned</th><th>Status</th></tr>' +
+      myLoans.map(l => {
+        const b = all.find(x => x.id === l.bookId);
+        if (!b) return "";
+        const st = getLoanStatus(l);
+        return '<tr>' +
+          '<td>' + b.title + '</td>' +
+          '<td>' + b.author + '</td>' +
+          '<td>' + (l.requestedOn || "—") + '</td>' +
+          '<td>' + (l.pickedUpOn || "—") + '</td>' +
+          '<td>' + (l.dueOn || "—") + '</td>' +
+          '<td>' + (l.returnedOn || (l.cancelledOn ? "cancelled" : l.expiredOn ? "expired" : "—")) + '</td>' +
+          '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+        '</tr>';
+      }).join("");
+  }
+
+  /* ---------- Wish grid ---------- */
+  const wishGrid = document.getElementById("wishGrid");
+  const renderWish = function(){
+    wishGrid.innerHTML = borrowed.map(id => {
+      const b = all.find(x => x.id === id);
+      return b ? renderBookCard(b) : "";
+    }).join("");
+  };
+  renderWish();
+  _wishGridRender = renderWish;
+
+  /* ---------- Notifications ---------- */
+  const notifList = document.getElementById("notifList");
+  const notifs = getNotifications();
+  notifList.innerHTML = notifs.length
+    ? notifs.map(n =>
+        '<div class="item-row notif-row">' +
+          '<span>' + escapeHtml(n.message) + '</span>' +
+          '<button type="button" class="notif-remove" data-remove-notif="' + n.id + '" aria-label="Remove">×</button>' +
+        '</div>'
+      ).join("")
+    : '<p class="muted">No notifications.</p>';
+}
+
+document.addEventListener("DOMContentLoaded", async function(){
+  await window.appReady;
+  if (!requireAuth()) return;
+  renderDashboard();
+
+  document.querySelectorAll(".tab").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("on", b === btn); });
+      document.querySelectorAll(".panel").forEach(function(p){ p.classList.toggle("on", p.id === btn.dataset.tab); });
+    });
+  });
+
+  document.addEventListener("click", function(e){
+    const details = e.target.closest("[data-details]");
+    if (details) { showDetails(details.dataset.details); return; }
+    const wish = e.target.closest("[data-wish]");
+    if (wish) { toggleWishlist(wish.dataset.wish); return; }
+    const cancel = e.target.closest("[data-cancel-loan]");
+    if (cancel) { cancelLoan(cancel.dataset.cancelLoan); return; }
+
+    const rmNotif = e.target.closest("[data-remove-notif]");
+    if (rmNotif) {
+      e.stopPropagation();
+      hideNotification(rmNotif.getAttribute("data-remove-notif"));
+      renderDashboard();
+      return;
+    }
+  });
+});
+</script>
+</body>
+</html>

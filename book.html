@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumen Library</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='2' width='44' height='44' rx='10' fill='%2335251E'/%3E%3Cpath d='M12 12h9c2 0 3 1 3 3v20c0-2-1-3-3-3h-9V12z' fill='%23DCC8AD'/%3E%3Cpath d='M36 12h-9c-2 0-3 1-3 3v20c0-2 1-3 3-3h9V12z' fill='%23B88A5A'/%3E%3Cpath d='M24 15v20' stroke='%2335251E' stroke-width='1.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script defer src="js/app.js"></script>
+
+<!-- ✅ CSS inline pour Reviews + Similar + Divider -->
+<style>
+  /* =========================================================
+     Reviews section — polished
+     ========================================================= */
+  .reviews-section{
+    margin-top:2.5rem !important;
+    padding-top:2rem !important;
+    border-top:2px solid #d8bda4 !important;
+  }
+
+  .reviews-section h2{
+    font-family:'Cormorant Garamond',Georgia,serif !important;
+    font-size:1.4rem !important;
+    font-weight:600 !important;
+    color:#35251E !important;
+    margin:0 0 1.2rem !important;
+  }
+
+  /* Summary */
+  .reviews-header{
+    margin-bottom:1.4rem !important;
+  }
+
+  .reviews-summary{
+    display:flex !important;
+    align-items:center !important;
+    gap:1rem !important;
+    flex-wrap:wrap !important;
+    padding:1rem 1.2rem !important;
+    background:#fbf3ea !important;
+    border-radius:12px !important;
+    border:1px solid #d8bda4 !important;
+  }
+
+  .reviews-avg{
+    font-family:'Cormorant Garamond',Georgia,serif !important;
+    font-size:2.2rem !important;
+    font-weight:700 !important;
+    color:#35251E !important;
+    line-height:1 !important;
+  }
+
+  .reviews-summary .stars{
+    color:#B88A5A !important;
+    font-size:1.15rem !important;
+    letter-spacing:2px !important;
+  }
+
+  .reviews-summary .muted{
+    font-size:.82rem !important;
+    color:#80604b !important;
+  }
+
+  /* Review form */
+  .review-form{
+    background:#fff !important;
+    padding:1.4rem 1.6rem !important;
+    border-radius:14px !important;
+    border:1px solid #d8bda4 !important;
+    margin:1.4rem 0 !important;
+  }
+
+  .review-form h3{
+    font-family:'Cormorant Garamond',Georgia,serif !important;
+    font-size:1.15rem !important;
+    font-weight:600 !important;
+    color:#35251E !important;
+    margin:0 0 1.2rem !important;
+  }
+
+  .review-form label{
+    display:block !important;
+    font-size:.8rem !important;
+    color:#604735 !important;
+    margin:.9rem 0 .5rem !important;
+    font-weight:500 !important;
+  }
+
+  .review-form label:first-of-type{
+    margin-top:0 !important;
+  }
+
+  /* Stars picker */
+  .star-picker{
+    display:flex !important;
+    gap:.4rem !important;
+    margin-bottom:.3rem !important;
+  }
+
+  .star-btn{
+    border:0 !important;
+    background:#f0e0ce !important;
+    width:44px !important;
+    height:44px !important;
+    border-radius:10px !important;
+    font-size:1.6rem !important;
+    color:#c8b7a5 !important;
+    cursor:pointer !important;
+    padding:0 !important;
+    line-height:1 !important;
+    transition:all .15s !important;
+    display:grid !important;
+    place-items:center !important;
+  }
+
+  .star-btn:hover{
+    background:#ead8c5 !important;
+    transform:scale(1.05) !important;
+  }
+
+  .star-btn.hover,
+  .star-btn.selected{
+    background:#B88A5A !important;
+    color:#fff !important;
+    transform:scale(1.05) !important;
+  }
+
+  .star-btn.selected{
+    box-shadow:0 2px 6px rgba(184,138,90,.3) !important;
+  }
+
+  /* Comment textarea */
+  .review-form textarea{
+    width:100% !important;
+    padding:.75rem .9rem !important;
+    border:1px solid #d8bda4 !important;
+    border-radius:10px !important;
+    background:#fff !important;
+    font-family:inherit !important;
+    font-size:.88rem !important;
+    color:#3b261b !important;
+    resize:vertical !important;
+    min-height:80px !important;
+    transition:border-color .15s, box-shadow .15s !important;
+    box-sizing:border-box !important;
+  }
+
+  .review-form textarea:hover{
+    border-color:#c9a982 !important;
+  }
+
+  .review-form textarea:focus{
+    border-color:#B88A5A !important;
+    outline:none !important;
+    box-shadow:0 0 0 3px rgba(184,138,90,.15) !important;
+  }
+
+  .review-form .row{
+    display:flex !important;
+    justify-content:flex-end !important;
+    margin-top:1.2rem !important;
+  }
+
+  .review-form .row button{
+    min-width:150px !important;
+    padding:.65rem 1.2rem !important;
+    font-size:.82rem !important;
+    border-radius:9px !important;
+    border:0 !important;
+    background:#B88A5A !important;
+    color:#fff !important;
+    font-weight:600 !important;
+    cursor:pointer !important;
+    font-family:inherit !important;
+    transition:background .15s !important;
+  }
+
+  .review-form .row button:hover{
+    background:#75452e !important;
+  }
+
+  /* List of reviews */
+  .reviews-list{
+    margin-top:1.5rem !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:1rem !important;
+  }
+
+  .review-item{
+    background:#fff !important;
+    padding:1.1rem 1.3rem !important;
+    border-radius:12px !important;
+    border:1px solid #d8bda4 !important;
+    position:relative !important;
+  }
+
+  .review-header{
+    display:flex !important;
+    align-items:center !important;
+    gap:.8rem !important;
+    flex-wrap:wrap !important;
+    margin-bottom:.5rem !important;
+  }
+
+  .review-header strong{
+    font-size:.92rem !important;
+    color:#35251E !important;
+    font-weight:600 !important;
+  }
+
+  .review-header .stars{
+    color:#B88A5A !important;
+    font-size:.95rem !important;
+    letter-spacing:1.5px !important;
+  }
+
+  .review-header small{
+    font-size:.72rem !important;
+    color:#80604b !important;
+    margin-left:auto !important;
+  }
+
+  .review-item p{
+    margin:.3rem 0 0 !important;
+    font-size:.88rem !important;
+    color:#604735 !important;
+    line-height:1.65 !important;
+  }
+
+  .review-item .remove-borrow{
+    margin-top:.6rem !important;
+    font-size:.75rem !important;
+    color:#C47F65 !important;
+    background:transparent !important;
+    border:0 !important;
+    cursor:pointer !important;
+    padding:0 !important;
+  }
+
+  .review-item .remove-borrow:hover{
+    text-decoration:underline !important;
+  }
+
+  /* =========================================================
+     Section divider between Reviews and Similar
+     ========================================================= */
+  .section-divider{
+    display:flex !important;
+    align-items:center !important;
+    gap:1rem !important;
+    margin:2.5rem 0 2rem !important;
+  }
+
+  .section-divider::before,
+  .section-divider::after{
+    content:"" !important;
+    flex:1 !important;
+    height:1px !important;
+    background:#d8bda4 !important;
+  }
+
+  .section-divider .divider-icon{
+    color:#B88A5A !important;
+    font-size:1.2rem !important;
+    flex-shrink:0 !important;
+  }
+
+  /* =========================================================
+     Similar books section — polish
+     ========================================================= */
+  .similar-section{
+    margin-top:0 !important;
+    padding-top:0 !important;
+    border-top:0 !important;
+  }
+
+  .similar-section h2{
+    font-family:'Cormorant Garamond',Georgia,serif !important;
+    font-size:1.4rem !important;
+    font-weight:600 !important;
+    color:#35251E !important;
+    margin:0 0 1.2rem !important;
+  }
+
+  .similar-section .book-grid{
+    grid-template-columns:repeat(4, minmax(0,1fr)) !important;
+    gap:16px !important;
+  }
+
+  @media(max-width:900px){
+    .similar-section .book-grid{
+      grid-template-columns:repeat(3, minmax(0,1fr)) !important;
+    }
+  }
+
+  @media(max-width:600px){
+    .similar-section .book-grid{
+      grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+
+  <section class="main-content">
+    <div id="detail" class="detail-page"></div>
+  </section>
+
+  <aside class="right-panel" id="readingList" aria-label="Reading list">
+    <div class="panel-heading">
+      <h2>My reading list</h2>
+      <span class="panel-count" id="borrowCount">0</span>
+    </div>
+    <p class="panel-intro">Books you plan to borrow.</p>
+    <div id="borrowList" class="borrow-list"></div>
+    <div id="borrowEmpty" class="borrow-empty">
+      <span>♡</span><strong>Your list is empty</strong>
+      <p>Add books from the catalogue to see them here.</p>
+    </div>
+  </aside>
+</div>
+
+<dialog id="bookDialog" class="book-dialog">
+  <button class="dialog-close" id="closeDialog" aria-label="Close">×</button>
+  <div id="dialogContent"></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  await window.appReady;
+
+  const id = Number(new URLSearchParams(location.search).get("id"));
+  const all = getAllBooks();
+  const b = all.find(x => x.id === id);
+  const box = document.getElementById("detail");
+  if (!box) return;
+
+  if (!b){
+    box.innerHTML =
+      '<div class="empty" style="margin:2rem 0">' +
+        '<h3>Book not found</h3>' +
+        '<p>The link may be incorrect.</p>' +
+        '<a class="btn caramel" href="index.html">Back to books</a>' +
+      '</div>';
+    return;
+  }
+
+  const user = getUser();
+  const s = statusLabel(b);
+  const inList = borrowed.includes(b.id);
+  const loans = loadLoans();
+  const myPending = user ? loans.find(l => l.bookId === b.id && l.status === "pending" && l.userEmail === user.email) : null;
+  const myOnLoan  = user ? loans.find(l => l.bookId === b.id && l.status === "on-loan" && l.userEmail === user.email) : null;
+  const hasReturned = user ? loans.some(l => l.bookId === b.id && l.status === "returned" && l.userEmail === user.email) : false;
+
+  const coverHtml = b.coverUrl
+    ? '<img src="' + escapeHtml(b.coverUrl) + '" alt="Cover of ' + escapeHtml(b.title) +
+      '" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#7a5640\'">'
+    : '<div style="width:100%;height:100%;background:linear-gradient(160deg,#7a5640,#35251E)"></div>';
+
+  let action = "";
+  if (myPending){
+    action = '<button class="secondary-button" type="button" id="cancelBtn">Cancel reservation</button>';
+  } else if (myOnLoan){
+    action = '<button class="primary-button" type="button" disabled>On loan</button>';
+  } else if (b.avail > 0){
+    action = '<button class="primary-button" type="button" id="reserveBtn">Reserve this book</button>';
+  } else {
+    action = '<button class="primary-button" type="button" disabled>Unavailable</button>';
+  }
+
+  box.innerHTML =
+    '<div class="breadcrumb"><a href="index.html">Books</a> / <span>' + escapeHtml(b.title) + '</span></div>' +
+    '<div class="detail">' +
+      '<div class="dialog-cover">' + coverHtml + '</div>' +
+      '<div>' +
+        '<span class="book-category">' + escapeHtml(b.cat) + '</span>' +
+        '<h2>' + escapeHtml(b.title) + '</h2>' +
+        '<p class="detail-author">' + escapeHtml(b.author) + '</p>' +
+        '<p class="detail-description">' + escapeHtml(b.desc || '') + '</p>' +
+        '<div class="detail-facts">' +
+          '<div><span>Year</span><strong>' + b.year + '</strong></div>' +
+          '<div><span>Language</span><strong>' + escapeHtml(b.lang) + '</strong></div>' +
+          '<div><span>ISBN</span><strong>' + escapeHtml(b.isbn || "—") + '</strong></div>' +
+          '<div><span>Copies</span><strong>' + b.avail + ' / ' + b.total + '</strong></div>' +
+          '<div><span>Status</span><strong>' + s.text + '</strong></div>' +
+        '</div>' +
+        '<div class="dialog-actions">' +
+          action +
+          '<button class="secondary-button" type="button" id="wishBtn">' +
+            (inList ? "♥ Remove from my list" : "♡ Add to my list") +
+          '</button>' +
+          '<a class="secondary-button" href="index.html">← Back to books</a>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="reviews-section" id="reviewsSection">' +
+      '<h2>Reviews &amp; ratings</h2>' +
+      '<div id="reviewsHeader" class="reviews-header"></div>' +
+      '<div id="reviewFormBox"></div>' +
+      '<div id="reviewsList" class="reviews-list"></div>' +
+    '</div>' +
+
+    '<div class="section-divider">' +
+      '<span class="divider-icon">✦</span>' +
+    '</div>' +
+
+    '<div class="similar-section" id="similarSection">' +
+      '<h2>You may also like</h2>' +
+      '<div class="book-grid" id="similarGrid"></div>' +
+    '</div>';
+
+  const reserveBtn = document.getElementById("reserveBtn");
+  if (reserveBtn) reserveBtn.addEventListener("click", () => { reserveBook(b.id); });
+  const cancelBtn = document.getElementById("cancelBtn");
+  if (cancelBtn) cancelBtn.addEventListener("click", () => { cancelLoan(b.id); });
+  const wishBtn = document.getElementById("wishBtn");
+  if (wishBtn) wishBtn.addEventListener("click", () => { toggleWishlist(b.id); });
+
+  /* ---------- Reviews ---------- */
+  async function loadReviews(){
+    const r = await api("reviews", "list", { query:{ bookId: b.id } });
+    if (!r.ok) return;
+
+    document.getElementById("reviewsHeader").innerHTML =
+      r.count > 0
+        ? '<div class="reviews-summary">' +
+            '<span class="reviews-avg">' + r.average + '</span>' +
+            '<span class="stars">' + renderStars(r.average) + '</span>' +
+            '<span class="muted">(' + r.count + ' review' + (r.count !== 1 ? 's' : '') + ')</span>' +
+          '</div>'
+        : '<p class="muted">No reviews yet.</p>';
+
+    const alreadyReviewed = user && r.reviews.some(rv => rv.userId === user.id);
+    const formBox = document.getElementById("reviewFormBox");
+    if (user && hasReturned && !alreadyReviewed){
+      formBox.innerHTML =
+        '<div class="review-form">' +
+          '<h3>Write a review</h3>' +
+          '<label>Rating</label>' +
+          '<div class="star-picker" id="starPicker">' +
+            [1,2,3,4,5].map(n => '<button type="button" data-star="' + n + '" class="star-btn">★</button>').join("") +
+          '</div>' +
+          '<label for="reviewComment">Comment (optional)</label>' +
+          '<textarea id="reviewComment" rows="3" placeholder="Share your thoughts…"></textarea>' +
+          '<div class="row"><button class="btn caramel" id="submitReview">Submit review</button></div>' +
+        '</div>';
+      initStarPicker();
+    } else if (user && !hasReturned){
+      formBox.innerHTML = '<p class="muted">You can write a review after returning this book.</p>';
+    } else if (user && alreadyReviewed){
+      formBox.innerHTML = '<p class="muted">You already reviewed this book.</p>';
+    }
+
+    document.getElementById("reviewsList").innerHTML =
+      r.reviews.length === 0 ? "" : r.reviews.map(rv =>
+        '<div class="review-item">' +
+          '<div class="review-header">' +
+            '<strong>' + escapeHtml(rv.userName) + '</strong>' +
+            '<span class="stars">' + renderStars(rv.rating) + '</span>' +
+            '<small class="muted">' + rv.createdAt + '</small>' +
+          '</div>' +
+          (rv.comment ? '<p>' + escapeHtml(rv.comment) + '</p>' : '') +
+          (user && rv.userId === user.id
+            ? '<button class="remove-borrow" data-delete-review="' + rv.id + '">Delete my review</button>'
+            : '') +
+        '</div>'
+      ).join("");
+
+    document.querySelectorAll("[data-delete-review]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        if (!(await customConfirm("Delete review", "Delete your review?"))) return;
+        const rr = await api("reviews", "delete_own", { body:{ id:Number(btn.dataset.deleteReview) } });
+        if (rr.ok){ showToast("Review deleted."); loadReviews(); }
+      });
+    });
+  }
+
+  function renderStars(n){
+    const full = Math.round(n);
+    let s = "";
+    for (let i = 0; i < 5; i++) s += i < full ? "★" : "☆";
+    return s;
+  }
+
+  function initStarPicker(){
+    const picker = document.getElementById("starPicker");
+    if (!picker) return;
+    let selected = 0;
+    const btns = picker.querySelectorAll(".star-btn");
+    btns.forEach((btn, i) => {
+      btn.addEventListener("mouseenter", () => btns.forEach((b, j) => b.classList.toggle("hover", j <= i)));
+      btn.addEventListener("mouseleave", () => btns.forEach(b => b.classList.remove("hover")));
+      btn.addEventListener("click", () => {
+        selected = i + 1;
+        btns.forEach((b, j) => b.classList.toggle("selected", j <= i));
+      });
+    });
+    document.getElementById("submitReview").addEventListener("click", async () => {
+      if (selected < 1){ showToast("Choose a rating first."); return; }
+      const comment = document.getElementById("reviewComment").value.trim();
+      const r = await api("reviews", "create", { body:{ bookId:b.id, rating:selected, comment:comment } });
+      if (!r.ok){ showToast(r.error); return; }
+      showToast("Review added.");
+      loadReviews();
+    });
+  }
+
+  /* ---------- Similar books ---------- */
+  async function loadSimilar(){
+    const r = await api("books", "similar", { query:{ id: b.id } });
+    if (!r.ok) return;
+    const grid = document.getElementById("similarGrid");
+    if (!r.books || r.books.length === 0){
+      document.getElementById("similarSection").style.display = "none";
+      return;
+    }
+    grid.innerHTML = r.books.map(rb => renderBookCard(rb)).join("");
+  }
+
+  await loadReviews();
+  await loadSimilar();
+});
+</script>
+</body>
+</html>

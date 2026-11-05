@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumen Library</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='2' width='44' height='44' rx='10' fill='%2335251E'/%3E%3Cpath d='M12 12h9c2 0 3 1 3 3v20c0-2-1-3-3-3h-9V12z' fill='%23DCC8AD'/%3E%3Cpath d='M36 12h-9c-2 0-3 1-3 3v20c0-2 1-3 3-3h9V12z' fill='%23B88A5A'/%3E%3Cpath d='M24 15v20' stroke='%2335251E' stroke-width='1.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<script defer src="js/app.js"></script>
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="dash-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+
+  <section class="dash-content">
+    <header class="dash-header">
+      <p class="eyebrow">Administrator area</p>
+      <h1>Admin panel</h1>
+      <p>Manage librarian accounts and access.</p>
+    </header>
+
+    <div class="stat-grid" id="adminStats"></div>
+
+    <div class="section-heading" style="margin-top:2rem">
+      <div>
+        <p class="eyebrow">Accounts</p>
+        <h2>Librarian accounts</h2>
+      </div>
+      <button class="btn caramel sm" id="addLibBtn" type="button">+ Add librarian</button>
+    </div>
+
+    <div class="search-row" style="margin:14px 0">
+      <div class="search-box">
+        <span class="search-symbol">⌕</span>
+        <input id="libSearch" placeholder="Search by name or email…" aria-label="Search librarians">
+      </div>
+      <select class="category-select" id="libStatusFilter" style="width:auto;min-width:160px">
+        <option value="all">All statuses</option>
+        <option value="active">Active</option>
+        <option value="disabled">Disabled</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table id="libTable"></table>
+    </div>
+
+    <div class="section-heading" style="margin-top:2rem">
+      <div>
+        <p class="eyebrow">Activity log</p>
+        <h2>Recent actions</h2>
+      </div>
+      <span class="muted" id="activityCount"></span>
+    </div>
+
+    <div class="search-row" style="margin:14px 0">
+      <div class="search-box">
+        <span class="search-symbol">⌕</span>
+        <input id="activitySearch" placeholder="Search in activity…" aria-label="Search activity">
+      </div>
+      <input type="date" id="activityDate" class="category-select" style="width:auto;max-width:none" title="Filter by date">
+      <button class="btn ghost sm" id="activityClear" type="button">Clear</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="activityTable"></table>
+    </div>
+    <div style="text-align:center;margin-top:1rem">
+      <button class="btn ghost sm" id="activityMoreBtn" type="button" style="display:none">Show more ↓</button>
+    </div>
+  </section>
+</div>
+
+<dialog id="libDlg">
+  <h2 id="libDlgTitle">Add a librarian</h2>
+  <form id="libForm">
+    <input type="hidden" id="libId" value="">
+    <label for="libName">Full name</label><input id="libName" required>
+    <label for="libEmail">Email</label><input id="libEmail" type="email" required>
+    <label for="libPhone">Phone (optional)</label><input id="libPhone" type="tel" placeholder="0555123456">
+    <label for="libPassword">Password</label>
+    <div class="pw-wrap">
+      <input id="libPassword" type="text" placeholder="At least 8 characters">
+    </div>
+    <div class="row">
+      <button type="button" class="btn ghost" id="libCancel">Cancel</button>
+      <button class="btn caramel" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async function(){
+  await window.appReady;
+  if (!requireAdmin()) return;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var librarians = [];
+  var activity = [];
+  var searchQuery = "";
+  var statusFilter = "all";
+
+  // ✅ Variables pour "Show more" + filtres
+  var activityVisible = 5;
+  var ACTIVITY_STEP = 5;
+  var activitySearch = "";
+  var activityDate = "";
+
+  async function loadData(){
+    const r = await api("admin", "list");
+    if (!r.ok){ showToast(r.error || "Cannot load librarians."); return; }
+    librarians = r.librarians || [];
+    activity = r.activity || [];
+    activityVisible = ACTIVITY_STEP;
+    renderStats(r.stats);
+    renderTable();
+    renderActivity();
+  }
+
+  function renderStats(st){
+    st = st || { total:0, active:0, disabled:0 };
+    $("adminStats").innerHTML = [
+      [st.total, "Total librarians"],
+      [st.active, "Active accounts"],
+      [st.disabled, "Disabled accounts"]
+    ].map(function(p){
+      return '<div class="stat"><b>' + p[0] + '</b><span>' + p[1] + '</span></div>';
+    }).join("");
+  }
+
+  function renderTable(){
+    var filtered = librarians.filter(function(l){
+      var q = searchQuery.trim().toLowerCase();
+      var okQ = !q || l.name.toLowerCase().indexOf(q) !== -1 || l.email.toLowerCase().indexOf(q) !== -1;
+      var okStatus = statusFilter === "all" || l.status === statusFilter;
+      return okQ && okStatus;
+    });
+
+    var table = $("libTable");
+    if (filtered.length === 0){
+      table.innerHTML = '<tr><td style="padding:1.2rem;text-align:center;color:var(--muted)">No librarians match your search.</td></tr>';
+      return;
+    }
+
+    table.innerHTML =
+      '<tr><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr>' +
+      filtered.map(function(l){
+        var disabled = l.status === "disabled";
+        var statusBadge = disabled
+          ? '<span class="badge warn">Disabled</span>'
+          : '<span class="badge ok">Active</span>';
+        var toggleBtn = disabled
+          ? '<button class="sm" data-enable="' + l.id + '">Enable</button>'
+          : '<button class="sm danger" data-disable="' + l.id + '">Disable</button>';
+        return '<tr>' +
+          '<td><strong>' + l.name + '</strong></td>' +
+          '<td>' + l.email + '</td>' +
+          '<td>' + statusBadge + '</td>' +
+          '<td>' +
+            '<button class="sm ghost" data-edit="' + l.id + '">Edit</button> ' +
+            toggleBtn +
+          '</td></tr>';
+      }).join("");
+  }
+
+  /* ✅ Activity avec Search + Date + Show more */
+  function renderActivity(){
+    var table = $("activityTable");
+    var countEl = $("activityCount");
+    var moreBtn = $("activityMoreBtn");
+
+    // Filtrage
+    var filtered = activity.filter(function(a){
+      var q = activitySearch.trim().toLowerCase();
+      var okQ = !q || a.message.toLowerCase().indexOf(q) !== -1;
+      var okDate = !activityDate || (a.date || "").startsWith(activityDate);
+      return okQ && okDate;
+    });
+
+    var total = activity.length;
+    var shown = filtered.length;
+
+    if (countEl){
+      if (activitySearch || activityDate){
+        countEl.textContent = shown + " of " + total + " action" + (total !== 1 ? "s" : "");
+      } else {
+        countEl.textContent = total + " action" + (total !== 1 ? "s" : "");
+      }
+    }
+
+    if (shown === 0){
+      table.innerHTML = '<tr><td style="padding:1.2rem;text-align:center;color:var(--muted)">No activity found.</td></tr>';
+      if (moreBtn) moreBtn.style.display = "none";
+      return;
+    }
+
+    var visible = Math.min(activityVisible, shown);
+    var pageItems = filtered.slice(0, visible);
+
+    table.innerHTML =
+      '<tr>' +
+        '<th style="width:70px">Type</th>' +
+        '<th>Action</th>' +
+        '<th style="width:190px">Date</th>' +
+      '</tr>' +
+      pageItems.map(function(a){
+        var badgeCls = a.type === "disable" ? "warn" :
+                       a.type === "enable"  ? "ok" :
+                       a.type === "delete"  ? "danger" :
+                       a.type === "create"  ? "ok" : "wait";
+        return '<tr>' +
+          '<td><span class="badge ' + badgeCls + '">' + a.type + '</span></td>' +
+          '<td>' + escapeHtml(a.message) + '</td>' +
+          '<td><small class="muted">' + a.date + '</small></td>' +
+        '</tr>';
+      }).join("");
+
+    if (moreBtn){
+      if (visible < shown){
+        moreBtn.style.display = "";
+        moreBtn.textContent = "Show more ↓ (" + (shown - visible) + " remaining)";
+      } else {
+        moreBtn.style.display = "none";
+      }
+    }
+  }
+
+  /* ✅ Activity — Show more + filters */
+  $("activityMoreBtn").addEventListener("click", function(){
+    activityVisible += ACTIVITY_STEP;
+    renderActivity();
+  });
+
+  $("activitySearch").addEventListener("input", function(e){
+    activitySearch = e.target.value;
+    activityVisible = ACTIVITY_STEP;
+    renderActivity();
+  });
+
+  $("activityDate").addEventListener("change", function(e){
+    activityDate = e.target.value;
+    activityVisible = ACTIVITY_STEP;
+    renderActivity();
+  });
+
+  $("activityClear").addEventListener("click", function(){
+    activitySearch = "";
+    activityDate = "";
+    $("activitySearch").value = "";
+    $("activityDate").value = "";
+    activityVisible = ACTIVITY_STEP;
+    renderActivity();
+  });
+
+  /* ---------- Librarian table ---------- */
+  $("libSearch").addEventListener("input", function(e){
+    searchQuery = e.target.value;
+    renderTable();
+  });
+  $("libStatusFilter").addEventListener("change", function(e){
+    statusFilter = e.target.value;
+    renderTable();
+  });
+
+  $("libTable").addEventListener("click", async function(e){
+    var edit = e.target.getAttribute("data-edit");
+    var dis  = e.target.getAttribute("data-disable");
+    var en   = e.target.getAttribute("data-enable");
+
+    if (edit !== null) {
+      var l = librarians.find(function(x){ return x.id === Number(edit); });
+      if (!l) return;
+      $("libDlgTitle").textContent = "Edit librarian";
+      $("libId").value = l.id;
+      $("libName").value = l.name;
+      $("libEmail").value = l.email;
+      $("libPhone").value = l.phone || "";
+      $("libPassword").value = "";
+      $("libPassword").placeholder = "Leave empty to keep current password";
+      $("libDlg").showModal();
+      return;
+    }
+    if (dis !== null) {
+      var t = librarians.find(function(x){ return x.id === Number(dis); });
+      if (!t) return;
+      const ok = await customConfirm("Disable account", 'Disable account "' + t.name + '"?\nThey will no longer be able to sign in.');
+      if (!ok) return;
+      var r = await api("admin", "set_status", { body:{ id:Number(dis), status:"disabled" } });
+      if (!r.ok){ showToast(r.error); return; }
+      await loadData();
+      showToast("Account disabled.");
+      return;
+    }
+    if (en !== null) {
+      var t2 = librarians.find(function(x){ return x.id === Number(en); });
+      if (!t2) return;
+      const ok2 = await customConfirm("Enable account", 'Enable account "' + t2.name + '"?');
+      if (!ok2) return;
+      var r2 = await api("admin", "set_status", { body:{ id:Number(en), status:"active" } });
+      if (!r2.ok){ showToast(r2.error); return; }
+      await loadData();
+      showToast("Account enabled.");
+    }
+  });
+
+  $("addLibBtn").addEventListener("click", function(){
+    $("libDlgTitle").textContent = "Add a librarian";
+    $("libId").value = "";
+    $("libName").value = "";
+    $("libEmail").value = "";
+    $("libPhone").value = "";
+    $("libPassword").value = "";
+    $("libPassword").placeholder = "At least 8 characters";
+    $("libDlg").showModal();
+  });
+
+  $("libCancel").addEventListener("click", function(){ $("libDlg").close(); });
+
+  $("libForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var id = $("libId").value;
+    var name = $("libName").value.trim();
+    var email = $("libEmail").value.trim();
+    var phone = $("libPhone").value.trim();
+    var password = $("libPassword").value;
+
+    if (!name || !email) return;
+    if (!/^\S+@\S+\.\S+$/.test(email)) { showToast("Invalid email."); return; }
+
+    if (id === "" && password.length < 8){
+      showToast("Password is required (at least 8 characters).");
+      return;
+    }
+    if (id !== "" && password && password.length < 8){
+      showToast("Password: at least 8 characters.");
+      return;
+    }
+
+    var r;
+    if (id === ""){
+      r = await api("admin", "create", { body:{ name:name, email:email, phone:phone, password:password } });
+    } else {
+      r = await api("admin", "update", { body:{ id:Number(id), name:name, email:email, phone:phone, password:password } });
+    }
+    if (!r.ok){ showToast(r.error); return; }
+
+    if (r.tempPassword){
+      await customAlert("Librarian created", "Temporary password: " + r.tempPassword + "\n\nPlease share it with the librarian.");
+    } else {
+      showToast(id === "" ? "Librarian added." : "Librarian updated.");
+    }
+
+    $("libDlg").close();
+    await loadData();
+  });
+
+  await loadData();
+});
+</script>
+</body>
+</html>

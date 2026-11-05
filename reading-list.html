@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumen Library</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='2' width='44' height='44' rx='10' fill='%2335251E'/%3E%3Cpath d='M12 12h9c2 0 3 1 3 3v20c0-2-1-3-3-3h-9V12z' fill='%23DCC8AD'/%3E%3Cpath d='M36 12h-9c-2 0-3 1-3 3v20c0-2 1-3 3-3h9V12z' fill='%23B88A5A'/%3E%3Cpath d='M24 15v20' stroke='%2335251E' stroke-width='1.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script defer src="js/app.js"></script>
+
+<style>
+  /* ✅ Page layout without right-panel — main content expands */
+  body.rl-page .app-shell{
+    grid-template-columns: 220px minmax(0, 1fr) !important;
+  }
+
+  @media(max-width:1180px){
+    body.rl-page .app-shell{
+      grid-template-columns: 180px minmax(0, 1fr) !important;
+    }
+  }
+
+  @media(max-width:850px){
+    body.rl-page .app-shell{
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* Wider book grid on this page (since no right panel) */
+  body.rl-page .book-grid{
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 22px 18px !important;
+  }
+
+  @media(max-width:1280px){
+    body.rl-page .book-grid{
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+  }
+
+  @media(max-width:900px){
+    body.rl-page .book-grid{
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+  }
+
+  @media(max-width:560px){
+    body.rl-page .book-grid{
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+
+  /* Header counter badge */
+  .rl-count-badge{
+    display: inline-block;
+    background: #efdfcd;
+    color: #75452e;
+    padding: .15rem .55rem;
+    border-radius: 99px;
+    font-size: .7rem;
+    font-weight: 600;
+    margin-left: .5rem;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body class="rl-page">
+
+<div id="site-header"></div>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+
+  <section class="main-content">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Saved for later</p>
+        <h1>My reading list<span class="rl-count-badge" id="rlCount">0</span></h1>
+        <p class="subtitle">Books you plan to borrow.</p>
+      </div>
+      <button class="btn ghost sm" id="rlClear" type="button">Clear all</button>
+    </header>
+
+    <div class="book-grid" id="rlGrid" style="margin-top:1.4rem"></div>
+
+    <div class="empty" id="rlEmpty" style="margin-top:1.4rem" hidden>
+      <h3>Your reading list is empty</h3>
+      <p>Browse the catalogue and click ♡ Add to my list.</p>
+      <a class="btn caramel" href="index.html" style="margin-top:.8rem">Browse books</a>
+    </div>
+  </section>
+</div>
+
+<dialog id="bookDialog" class="book-dialog">
+  <button class="dialog-close" id="closeDialog" aria-label="Close">×</button>
+  <div id="dialogContent"></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Met à jour le badge du nombre d'items à chaque rendu de la grille
+  const countEl = document.getElementById("rlCount");
+  if (countEl){
+    // Observer les changements dans rlGrid
+    const grid = document.getElementById("rlGrid");
+    if (grid){
+      const updateCount = () => {
+        const cards = grid.querySelectorAll(".book-card");
+        countEl.textContent = cards.length;
+      };
+      const observer = new MutationObserver(updateCount);
+      observer.observe(grid, { childList: true, subtree: false });
+      updateCount();
+    }
+  }
+});
+</script>
+</body>
+</html>
