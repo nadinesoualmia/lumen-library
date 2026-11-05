@@ -36,7 +36,6 @@ const DEFAULT_USERS = [
 ];
 
 const DEFAULT_BOOKS = [
-  /* ── CLASSICS ── */
   { id: 1,  title: "The Great Gatsby", author: "F. Scott Fitzgerald", cat: "Classic", year: 1925, lang: "English", isbn: "9780743273565", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg", desc: "A story of the mysteriously wealthy Jay Gatsby and his love for Daisy Buchanan.", borrows: 12 },
   { id: 2,  title: "To Kill a Mockingbird", author: "Harper Lee", cat: "Classic", year: 1960, lang: "English", isbn: "9780446310789", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780446310789-L.jpg", desc: "Racial injustice and loss of innocence in the American South.", borrows: 8 },
   { id: 3,  title: "1984", author: "George Orwell", cat: "Science Fiction", year: 1949, lang: "English", isbn: "9780451524935", total: 4, avail: 4, coverUrl: "https://covers.openlibrary.org/b/isbn/9780451524935-L.jpg", desc: "A dystopian novel about totalitarianism and surveillance.", borrows: 15 },
@@ -57,43 +56,31 @@ const DEFAULT_BOOKS = [
   { id: 18, title: "Les Misérables", author: "Victor Hugo", cat: "Classic", year: 1862, lang: "French", isbn: "9780451419439", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780451419439-L.jpg", desc: "Redemption and revolution in 19th-century France.", borrows: 5 },
   { id: 19, title: "The Count of Monte Cristo", author: "Alexandre Dumas", cat: "Classic", year: 1844, lang: "French", isbn: "9780140449266", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780140449266-L.jpg", desc: "Betrayal, imprisonment, and revenge.", borrows: 9 },
   { id: 20, title: "Don Quixote", author: "Miguel de Cervantes", cat: "Classic", year: 1605, lang: "Spanish", isbn: "9780060934347", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780060934347-L.jpg", desc: "A delusional knight-errant and his loyal squire.", borrows: 3 },
-
-  /* ── FANTASY ── */
   { id: 21, title: "The Fellowship of the Ring", author: "J.R.R. Tolkien", cat: "Fantasy", year: 1954, lang: "English", isbn: "9780547928210", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780547928210-L.jpg", desc: "The first volume of The Lord of the Rings.", borrows: 13 },
   { id: 22, title: "A Game of Thrones", author: "George R.R. Martin", cat: "Fantasy", year: 1996, lang: "English", isbn: "9780553103540", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780553103540-L.jpg", desc: "Noble families vie for control of the Iron Throne.", borrows: 18 },
   { id: 23, title: "The Name of the Wind", author: "Patrick Rothfuss", cat: "Fantasy", year: 2007, lang: "English", isbn: "9780756404741", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780756404741-L.jpg", desc: "A magician tells the story of his life.", borrows: 9 },
   { id: 24, title: "Mistborn: The Final Empire", author: "Brandon Sanderson", cat: "Fantasy", year: 2006, lang: "English", isbn: "9780765311788", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780765311788-L.jpg", desc: "A thief learns to use magical metals.", borrows: 8 },
   { id: 25, title: "The Lion, the Witch and the Wardrobe", author: "C.S. Lewis", cat: "Fantasy", year: 1950, lang: "English", isbn: "9780064471046", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780064471046-L.jpg", desc: "Four children enter the magical land of Narnia.", borrows: 11 },
-
-  /* ── SCIENCE FICTION ── */
   { id: 26, title: "Foundation", author: "Isaac Asimov", cat: "Science Fiction", year: 1951, lang: "English", isbn: "9780553293357", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780553293357-L.jpg", desc: "A mathematician predicts the fall of an empire.", borrows: 6 },
   { id: 27, title: "Neuromancer", author: "William Gibson", cat: "Science Fiction", year: 1984, lang: "English", isbn: "9780441569595", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780441569595-L.jpg", desc: "The novel that defined cyberpunk.", borrows: 5 },
   { id: 28, title: "The Martian", author: "Andy Weir", cat: "Science Fiction", year: 2011, lang: "English", isbn: "9780553418026", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780553418026-L.jpg", desc: "An astronaut stranded on Mars must survive.", borrows: 14 },
   { id: 29, title: "Ender's Game", author: "Orson Scott Card", cat: "Science Fiction", year: 1985, lang: "English", isbn: "9780812550702", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780812550702-L.jpg", desc: "A boy trains to lead Earth's space fleet.", borrows: 8 },
   { id: 30, title: "The Hitchhiker's Guide to the Galaxy", author: "Douglas Adams", cat: "Science Fiction", year: 1979, lang: "English", isbn: "9780345391803", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780345391803-L.jpg", desc: "Arthur Dent's absurd trip across the universe.", borrows: 12 },
-
-  /* ── MYSTERY & THRILLER ── */
   { id: 31, title: "The Girl with the Dragon Tattoo", author: "Stieg Larsson", cat: "Mystery", year: 2005, lang: "Swedish", isbn: "9780307454546", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780307454546-L.jpg", desc: "A journalist and hacker investigate a cold case.", borrows: 10 },
   { id: 32, title: "Gone Girl", author: "Gillian Flynn", cat: "Mystery", year: 2012, lang: "English", isbn: "9780307588371", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780307588371-L.jpg", desc: "A wife disappears and her husband becomes the suspect.", borrows: 11 },
   { id: 33, title: "The Da Vinci Code", author: "Dan Brown", cat: "Mystery", year: 2003, lang: "English", isbn: "9780307474278", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780307474278-L.jpg", desc: "A symbologist unravels a conspiracy.", borrows: 13 },
   { id: 34, title: "And Then There Were None", author: "Agatha Christie", cat: "Mystery", year: 1939, lang: "English", isbn: "9780062073488", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780062073488-L.jpg", desc: "Ten strangers are murdered one by one on an island.", borrows: 7 },
   { id: 35, title: "The Silence of the Lambs", author: "Thomas Harris", cat: "Mystery", year: 1988, lang: "English", isbn: "9780312924584", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780312924584-L.jpg", desc: "An FBI trainee consults a cannibalistic killer.", borrows: 8 },
-
-  /* ── ROMANCE ── */
   { id: 36, title: "The Notebook", author: "Nicholas Sparks", cat: "Romance", year: 1996, lang: "English", isbn: "9780446605236", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780446605236-L.jpg", desc: "A lifelong love story told through a notebook.", borrows: 9 },
   { id: 37, title: "Outlander", author: "Diana Gabaldon", cat: "Romance", year: 1991, lang: "English", isbn: "9780440212560", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780440212560-L.jpg", desc: "A WWII nurse travels back in time to Scotland.", borrows: 6 },
   { id: 38, title: "Me Before You", author: "Jojo Moyes", cat: "Romance", year: 2012, lang: "English", isbn: "9780143124542", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780143124542-L.jpg", desc: "A caregiver falls for a paralyzed man.", borrows: 7 },
   { id: 39, title: "The Fault in Our Stars", author: "John Green", cat: "Romance", year: 2012, lang: "English", isbn: "9780525478812", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780525478812-L.jpg", desc: "Two teenagers with cancer fall in love.", borrows: 12 },
   { id: 40, title: "Anna Karenina", author: "Leo Tolstoy", cat: "Romance", year: 1877, lang: "Russian", isbn: "9780143035008", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780143035008-L.jpg", desc: "A tragic love affair in imperial Russia.", borrows: 4 },
-
-  /* ── NON-FICTION ── */
   { id: 41, title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", cat: "Non-Fiction", year: 2011, lang: "English", isbn: "9780062316097", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg", desc: "A sweeping history of the human species.", borrows: 15 },
   { id: 42, title: "Thinking, Fast and Slow", author: "Daniel Kahneman", cat: "Non-Fiction", year: 2011, lang: "English", isbn: "9780374533557", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg", desc: "Two systems that drive how we think.", borrows: 6 },
   { id: 43, title: "The Power of Habit", author: "Charles Duhigg", cat: "Non-Fiction", year: 2012, lang: "English", isbn: "9780812981605", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780812981605-L.jpg", desc: "How habits shape our lives and businesses.", borrows: 8 },
   { id: 44, title: "Educated", author: "Tara Westover", cat: "Non-Fiction", year: 2018, lang: "English", isbn: "9780399590504", total: 3, avail: 3, coverUrl: "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg", desc: "A woman's journey from survivalist home to Cambridge.", borrows: 11 },
   { id: 45, title: "Becoming", author: "Michelle Obama", cat: "Non-Fiction", year: 2018, lang: "English", isbn: "9781524763138", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9781524763138-L.jpg", desc: "The memoir of the former First Lady.", borrows: 14 },
-
-  /* ── YOUNG ADULT ── */
   { id: 46, title: "The Hunger Games", author: "Suzanne Collins", cat: "Young Adult", year: 2008, lang: "English", isbn: "9780439023481", total: 4, avail: 4, coverUrl: "https://covers.openlibrary.org/b/isbn/9780439023481-L.jpg", desc: "Teens fight to the death in a televised event.", borrows: 19 },
   { id: 47, title: "Divergent", author: "Veronica Roth", cat: "Young Adult", year: 2011, lang: "English", isbn: "9780062024022", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9780062024022-L.jpg", desc: "A girl discovers she doesn't fit into any faction.", borrows: 9 },
   { id: 48, title: "The Perks of Being a Wallflower", author: "Stephen Chbosky", cat: "Young Adult", year: 1999, lang: "English", isbn: "9781451696196", total: 2, avail: 2, coverUrl: "https://covers.openlibrary.org/b/isbn/9781451696196-L.jpg", desc: "An introverted teen navigates high school.", borrows: 7 },
@@ -913,10 +900,11 @@ function updateNotifUI() {
   }
 }
 
+/* ✅ CORS FIX: Added referrerpolicy="no-referrer" so images load on GitHub Pages */
 function coverMarkup(b) {
   const fb = b.coverUrl
     ? '<img src="' + escapeHtml(b.coverUrl) + '" alt="Cover of ' + escapeHtml(b.title) +
-      '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+      '" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
       '<div class="cover-fallback v' + (b.id % 6) + '" style="display:none">' +
         '<strong>' + escapeHtml(b.title) + '</strong><small>' + escapeHtml(b.author) + '</small>' +
       '</div>'
@@ -1348,7 +1336,7 @@ async function removeFromWishlist(id) {
 }
 
 /* =========================================================
-   RESERVE — ✅ UPDATED: closes dialog so availability updates immediately
+   RESERVE
    ========================================================= */
 async function reserveBook(id) {
   const user = getUser();
@@ -1397,12 +1385,10 @@ async function reserveBook(id) {
     return;
   }
 
-  // ✅ Refresh STATE (books array now has updated avail count)
   await refreshData();
   renderBorrowed();
   refreshAllBookGrids();
 
-  // ✅ Close the modal so user sees the updated card immediately
   const dlg = document.getElementById("bookDialog");
   if (dlg && dlg.open) dlg.close();
 
@@ -1474,6 +1460,7 @@ async function markReturned(loanId) {
 /* =========================================================
    Right panel
    ========================================================= */
+/* ✅ CORS FIX: Added referrerpolicy="no-referrer" here too */
 function renderBorrowed() {
   const list = document.getElementById("borrowList");
   const empty = document.getElementById("borrowEmpty");
@@ -1490,7 +1477,7 @@ function renderBorrowed() {
     const b = all.find(x => x.id === id);
     if (!b) return "";
     const img = b.coverUrl
-      ? '<img class="mini-cover" src="' + escapeHtml(b.coverUrl) + '" alt="" ' +
+      ? '<img class="mini-cover" src="' + escapeHtml(b.coverUrl) + '" alt="" referrerpolicy="no-referrer" ' +
         'onerror="this.style.background=\'#7a5640\';this.removeAttribute(\'src\')">'
       : '<div class="mini-cover" style="background:linear-gradient(160deg,#7a5640,#35251E)"></div>';
     return '<article class="borrow-item">' + img +
@@ -1511,6 +1498,7 @@ function renderBorrowed() {
 /* =========================================================
    Book detail dialog
    ========================================================= */
+/* ✅ CORS FIX: Added referrerpolicy="no-referrer" to the modal cover */
 function showDetails(id) {
   const all = getAllBooks();
   const b = all.find(x => x.id === Number(id));
@@ -1526,7 +1514,7 @@ function showDetails(id) {
   const myOnLoan  = user ? loans.find(l => l.bookId === b.id && l.status === "on-loan" && l.userEmail === user.email) : null;
   const s = statusLabel(b);
   const coverHtml = b.coverUrl
-    ? '<img src="' + escapeHtml(b.coverUrl) + '" alt="Cover" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#7a5640\'">'
+    ? '<img src="' + escapeHtml(b.coverUrl) + '" alt="Cover" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#7a5640\'">'
     : '<div style="width:100%;height:100%;background:linear-gradient(160deg,#7a5640,#35251E)"></div>';
 
   let borrowBtn = "";
