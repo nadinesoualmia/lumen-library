@@ -1577,106 +1577,116 @@ dialog input,dialog select{
   }
 }
 /* =========================================================
-   إصلاح جذري للهواتف (Mobile Layout Fix)
+   إصلاح نهائي وقاطع لمشكلة الهاتف (The Ultimate Mobile Fix)
    ========================================================= */
 
-@media (max-width: 850px) {
-  /* 1. إصلاح الهيكل الرئيسي (داشبورد والموقع) */
-  .dash-shell, .app-shell {
-    display: block !important;
+@media (max-width: 900px) {
+  
+  /* 1. تدمير التصميم الشبكي وإجبار الصفحة على الترتيب العمودي */
+  .app-shell, 
+  .dash-shell {
+    display: flex !important;
+    flex-direction: column !important;
     padding: 10px !important;
+    gap: 15px !important;
     width: 100% !important;
-    box-sizing: border-box !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
   }
 
-  /* 2. إصلاح القائمة الجانبية (Sidebar) لتصبح شريطاً علوياً */
+  /* 2. تحويل القائمة الجانبية إلى شريط علوي صغير ومقروء */
   .sidebar {
     display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    height: auto !important;
-    padding: 10px 15px !important;
-    margin-bottom: 15px !important;
+    flex-direction: column !important;
     position: relative !important;
     top: 0 !important;
+    height: auto !important;
+    width: 100% !important;
+    padding: 12px !important;
+    margin: 0 !important;
     border-radius: 12px !important;
+    background: var(--cream) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
   }
 
-  /* إخفاء النصوص غير الضرورية في القائمة الجانبية */
-  .sidebar .side-label, 
-  .sidebar .profile-mini, 
-  .sidebar-bottom {
-    display: none !important; 
+  /* إخفاء العناصر الزائدة من القائمة الجانبية */
+  .sidebar .side-label,
+  .sidebar .sidebar-bottom {
+    display: none !important;
   }
 
+  /* إصلاح أزرار القائمة الجانبية */
   .sidebar .nav {
     display: flex !important;
     flex-direction: row !important;
-    width: 100% !important;
-    gap: 10px !important;
+    flex-wrap: wrap !important;
     justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
   }
 
   .sidebar .nav-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
     background: #f0e0ce !important;
-    padding: 8px 15px !important;
     border-radius: 8px !important;
     font-size: 0.8rem !important;
-    color: #75452e !important;
+    width: auto !important;
+    flex: 1 1 auto !important;
   }
 
   .sidebar .nav-link.active {
-    background: #B88A5A !important;
+    background: var(--caramel) !important;
     color: #fff !important;
   }
 
-  /* 3. إصلاح المحتوى الرئيسي ليظهر */
-  .dash-content, .main-content {
+  .sidebar .nav-ico {
+    display: none !important; /* إخفاء الأيقونات لتوفير المساحة */
+  }
+
+  /* 3. إظهار المحتوى الرئيسي بشكل كامل */
+  .dash-content, 
+  .main-content {
     display: block !important;
     width: 100% !important;
-    padding: 15px !important;
     min-height: auto !important;
+    padding: 15px !important;
     border-radius: 12px !important;
+    background: var(--cream) !important;
+    margin: 0 !important;
   }
 
-  /* 4. إصلاح شبكة الإحصائيات (Stats) */
+  /* 4. إخفاء اللوحة اليمنى (قائمة القراءة) لأنها تسبب فوضى على الهاتف */
+  .right-panel {
+    display: none !important;
+  }
+
+  /* 5. إصلاح الجداول والإحصائيات */
+  .table-wrap {
+    overflow-x: auto !important;
+    width: 100% !important;
+  }
+  
   .stat-grid {
-    display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
-    margin-bottom: 20px !important;
-  }
-
-  /* 5. إصلاح الجداول */
-  .table-wrap {
-    width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    border-radius: 8px !important;
   }
   
-  table {
-    min-width: 500px !important; 
+  /* 6. إخفاء الفوتر إذا كان يسبب مشاكل */
+  .mini-footer {
+    display: none !important;
   }
+}
 
-  /* 6. إصلاح التبويبات (Tabs) */
-  .tabs {
-    display: flex !important;
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    padding-bottom: 5px !important;
-    -webkit-overflow-scrolling: touch !important;
+/* للشاشات الصغيرة جداً */
+@media (max-width: 480px) {
+  .sidebar .nav {
+    flex-direction: column !important; /* الأزرار فوق بعضها */
   }
-  
-  .tab {
-    white-space: nowrap !important;
-    font-size: 0.8rem !important;
-  }
-
-  /* 7. إخفاء اللوحة اليمنى (القراءة) في الصفحة الرئيسية على الهاتف */
-  .right-panel {
-    display: none !important; 
+  .stat-grid {
+    grid-template-columns: 1fr !important;
   }
 }
